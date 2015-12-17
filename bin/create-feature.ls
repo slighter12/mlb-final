@@ -1,6 +1,7 @@
 require! <[fs]>
-all-protein = JSON.parse fs.read-file-sync \../output/protein2predata.json
-feature-log = \../output/train.feature
+[type] = process.argv .slice
+all-protein = JSON.parse fs.read-file-sync "../output/protein2#type.json"
+feature-log = "../output/#type.feature"
 train-data = ''
 hindex-table = do
   R: -4.5 K: -3.9 N: -3.5 D: -3.5 Q: -3.5
@@ -27,7 +28,7 @@ function pnh-ratio hydro-seq
   [ polar, netral, hydrophobic ] = [0] * 3
   for amoni-hydro in hydro-seq
     switch amoni-hydro | \P => polar++ | \N => netral++ | \H => hydrophobic++
-  return [ polar, netral, hydrophobic ]
+  return [ polar , netral, hydrophobic ]
 
 function pnh-length seq, hydro-seq
   polar = [ 0 ] * 2; hydrophobic = [ 0 ] * 2
@@ -53,8 +54,11 @@ function pnh-turning-point hydro-seq
   [ np, ph, hn ] = [0] * 3
   for let acid, i in hydro-seq by 1 when i isnt hydro-seq.length - 1
     if acid is \N and hydro-seq[i+1] is \P => np++
+    else if acid is \P and hydro-seq[i+1] is \N => np++
     else if acid is \P and hydro-seq[i+1] is \H => ph++
+    else if acid is \H and hydro-seq[i+1] is \P => ph++
     else if acid is \H and hydro-seq[i+1] is \N => hn++
+    else if acid is \N and hydro-seq[i+1] is \H => hn++
   return [ np, ph, hn ]
 
 # function evaluate hydro-seq, label

@@ -1,6 +1,7 @@
 require! <[fs jsonfile]>
+[type] = process.argv .slice 2
 allprot = (fs.read-file-sync \../res/allprot.fa, encoding: \utf-8) / \\n
-train = (fs.read-file-sync \../res/train, encoding: \utf-8) / \\n
+train = (fs.read-file-sync "../res/#type", encoding: \utf-8) / \\n
 train.pop!
 
 # resolve fasta
@@ -20,4 +21,4 @@ for line in train
   if prot[id] => mapped-train[id] = label: label, seq: prot[id]
   else console.log "Miss #{id}"
 
-jsonfile.write-file-sync \../output/train.json, mapped-train, spaces: 2
+jsonfile.write-file-sync "../output/#type.json", mapped-train, spaces: 2

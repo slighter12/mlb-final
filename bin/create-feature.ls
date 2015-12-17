@@ -10,15 +10,15 @@ hindex-table = do
 
 for protein, content of all-protein
   train-data += get-feature content
-  # break
-# console.log train-data
-fs.write-file-sync feature-log, train-data
+  break
+console.log train-data
+# fs.write-file-sync feature-log, train-data
 
 function get-feature content
   feature = []
-  [ data, hydro ] = [ content.label, content.hydro ]
+  [ data, seq, hydro ] = [ content.label, content.seq, content.hydro ]
   feature ++= pnh-ratio hydro
-  feature ++= pnh-length hydro
+  feature ++= pnh-length seq, hydro
   feature ++= pnh-turning-point hydro
   for value, index in feature then data += " #{index+1}:#value"
   return data + \\n
@@ -29,9 +29,9 @@ function pnh-ratio hydro-seq
     switch amoni-hydro | \P => polar++ | \N => netral++ | \H => hydrophobic++
   return [ polar, netral, hydrophobic ]
 
-function pnh-length hydro-seq
-  [ polar, hydrophobic ] = [0] * 2
-  mark = []; before-hydro = \N
+function pnh-length seq, hydro-seq
+  polar = [ 0 ] * 2; hydrophobic = [ 0 ] * 2
+  mark = []; value-seq = []; before-hydro = \N
   for amoni-hydro, index in hydro-seq
     num = switch amoni-hydro
       | \N => 0
@@ -40,11 +40,14 @@ function pnh-length hydro-seq
       | \H =>
         switch that | before-hydro => mark[index - 1] - 1 | _ =>  -1
     mark.push num; before-hydro = amoni-hydro
-    #console.log mark[index - 1]
-    if num > polar then polar = num
-    if num < hydrophobic then hydrophobic = num
+    value = if (in [ 1, 0, -1 ]) num then hindex-table[seq[index]] else value + hindex-table[seq[index]]
+    value-seq.push value
+    # console.log mark[index - 1]
+    if num > polar[0] then polar = [ num, index ]
+    if num < hydrophobic[0] then hydrophobic = [ num, index ]
   # console.log mark
-  return [ polar, -hydrophobic ]
+  # console.log value-seq
+  return [polar[0], value-seq[polar[1]], -hydrophobic[0], value-seq[hydrophobic[1]], (Math.max ...value-seq), (Math.min ...value-seq)]
 
 function pnh-turning-point hydro-seq
   [ np, ph, hn ] = [0] * 3

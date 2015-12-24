@@ -1,8 +1,8 @@
 require! <[fs]>
 [type] = process.argv .slice 2
 root =
-  protein: "../output/#type.json"
-  hydro: "../output/protein2#type.json"
+  protein: "./output/#type.json"
+  hydro: "./output/#type.hydro.json"
 
 allprotein = JSON.parse fs.read-file-sync root.protein
 for key, protein of allprotein

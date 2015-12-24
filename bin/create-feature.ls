@@ -1,7 +1,7 @@
 require! <[fs]>
-[type] = process.argv .slice
-all-protein = JSON.parse fs.read-file-sync "../output/protein2#type.json"
-feature-log = "../output/#type.feature"
+[type] = process.argv .slice 2
+all-protein = JSON.parse fs.read-file-sync "./output/#type.hydro.json"
+feature-log = "./output/#type.feature"
 train-data = ''
 hindex-table = do
   R: -4.5 K: -3.9 N: -3.5 D: -3.5 Q: -3.5
@@ -11,9 +11,9 @@ hindex-table = do
 
 for protein, content of all-protein
   train-data += get-feature content
-  break
-console.log train-data
-# fs.write-file-sync feature-log, train-data
+  # break
+# console.log train-data
+fs.write-file-sync feature-log, train-data
 
 function get-feature content
   feature = []
@@ -31,7 +31,7 @@ function pnh-ratio hydro-seq
   return [ polar , netral, hydrophobic ]
 
 function pnh-length seq, hydro-seq
-  polar = [ 0 ] * 2; hydrophobic = [ 0 ] * 2
+  polar = [ 0, []]; hydrophobic = [ 0, []]
   mark = []; value-seq = []; before-hydro = \N
   for amoni-hydro, index in hydro-seq
     num = switch amoni-hydro
@@ -44,11 +44,19 @@ function pnh-length seq, hydro-seq
     value = if (in [ 1, 0, -1 ]) num then hindex-table[seq[index]] else value + hindex-table[seq[index]]
     value-seq.push value
     # console.log mark[index - 1]
-    if num > polar[0] then polar = [ num, index ]
-    if num < hydrophobic[0] then hydrophobic = [ num, index ]
+    if num >= polar[0]
+      if num > polar[0] then polar = [ num, [index]] else polar[1].push index
+    if num <= hydrophobic[0]
+      if num < hydrophobic[0] then hydrophobic = [ num, [index]] else hydrophobic[1].push index
+  max-polar = get-hydrophobic value-seq, polar[1], \min
+  max-hydrophobic = get-hydrophobic value-seq, hydrophobic[1], \max
   # console.log mark
   # console.log value-seq
-  return [polar[0], value-seq[polar[1]], -hydrophobic[0], value-seq[hydrophobic[1]], (Math.max ...value-seq), (Math.min ...value-seq)]
+  return [polar[0], max-polar, -hydrophobic[0], max-hydrophobic, (Math.max ...value-seq), (Math.min ...value-seq)]
+  function get-hydrophobic seq, array, word
+    value = []
+    for index in array then value.push seq[index]
+    if word is \max then return (Math.max ...value) else return (Math.min ...value)
 
 function pnh-turning-point hydro-seq
   [ np, ph, hn ] = [0] * 3

@@ -1,7 +1,7 @@
 require! <[fs]>
-[type] = process.argv .slice
-all-protein = JSON.parse fs.read-file-sync "../output/protein2#type.json"
-feature-log = "../output/#type.feature"
+[type] = process.argv .slice 2
+all-protein = JSON.parse fs.read-file-sync "./output/#type.hydro.json"
+feature-log = "./output/#type.feature"
 train-data = ''
 hindex-table = do
   R: -4.5 K: -3.9 N: -3.5 D: -3.5 Q: -3.5
@@ -11,9 +11,9 @@ hindex-table = do
 
 for protein, content of all-protein
   train-data += get-feature content
-  break
-console.log train-data
-# fs.write-file-sync feature-log, train-data
+  # break
+# console.log train-data
+fs.write-file-sync feature-log, train-data
 
 function get-feature content
   feature = []

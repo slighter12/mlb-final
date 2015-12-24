@@ -28,6 +28,9 @@ function pnh-ratio hydro-seq
   [ polar, netral, hydrophobic ] = [0] * 3
   for amoni-hydro in hydro-seq
     switch amoni-hydro | \P => polar++ | \N => netral++ | \H => hydrophobic++
+  polar = polar / hydro-seq.length
+  netral = netral / hydro-seq.length
+  hydrophobic = hydrophobic / hydro-seq.length
   return [ polar , netral, hydrophobic ]
 
 function pnh-length seq, hydro-seq

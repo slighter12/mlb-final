@@ -2,7 +2,7 @@ require! <[fs jsonfile]>
 [type] = process.argv .slice 2
 allprot = (fs.read-file-sync \./res/allprot.fa, encoding: \utf-8) / \\n
 train = (fs.read-file-sync "./res/#type", encoding: \utf-8) / \\n
-train.pop!
+# train.pop!
 
 # resolve fasta
 prot = {}; seq = ''; id = ''

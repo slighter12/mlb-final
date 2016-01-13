@@ -21,6 +21,7 @@ function get-feature content
   feature ++= pnh-ratio hydro
   feature ++= pnh-length seq, hydro
   feature ++= pnh-turning-point hydro
+  feature ++= windows-pnh hydro, 4
   for value, index in feature then data += " #{index+1}:#value"
   return data + \\n
 
@@ -36,16 +37,19 @@ function pnh-ratio hydro-seq
 function pnh-length seq, hydro-seq
   polar = [ 0, []]; hydrophobic = [ 0, []]
   mark = []; value-seq = []; before-hydro = \N
+  hydro-value = 0; hydro-value-seq = []
   for amoni-hydro, index in hydro-seq
     num = switch amoni-hydro
       | \N => 0
       | \P =>
         switch that | before-hydro => mark[index - 1] + 1 | _ => 1
       | \H =>
-        switch that | before-hydro => mark[index - 1] - 1 | _ =>  -1
+        switch that | before-hydro => mark[index - 1] - 1 | _ => -1
     mark.push num; before-hydro = amoni-hydro
     value = if (in [ 1, 0, -1 ]) num then hindex-table[seq[index]] else value + hindex-table[seq[index]]
     value-seq.push value
+    hydro-value = if ( hydro-value / hindex-table[seq[index]] ) > 0 then hydro-value + hindex-table[seq[index]] else hindex-table[seq[index]]
+    hydro-value-seq.push hydro-value
     # console.log mark[index - 1]
     if num >= polar[0]
       if num > polar[0] then polar = [ num, [index]] else polar[1].push index
@@ -55,7 +59,8 @@ function pnh-length seq, hydro-seq
   max-hydrophobic = get-hydrophobic value-seq, hydrophobic[1], \max
   # console.log mark
   # console.log value-seq
-  return [polar[0], max-polar, -hydrophobic[0], max-hydrophobic, (Math.max ...value-seq), (Math.min ...value-seq)]
+  return [polar[0], max-polar, -hydrophobic[0], max-hydrophobic, (Math.max ...value-seq), (Math.min ...value-seq), (Math.max ...hydro-value-seq), (Math.min ...hydro-value-seq)]
+  # return [polar[0], -hydrophobic[0], (Math.max ...value-seq), (Math.min ...value-seq), (Math.max ...hydro-value-seq), (Math.min ...hydro-value-seq)]
   function get-hydrophobic seq, array, word
     value = []
     for index in array then value.push seq[index]
@@ -71,6 +76,14 @@ function pnh-turning-point hydro-seq
     else if acid is \H and hydro-seq[i+1] is \N => hn++
     else if acid is \N and hydro-seq[i+1] is \H => hn++
   return [ np, ph, hn ]
+
+function windows-pnh hydro-seq, windowsnum
+  sub-pnh = []
+  leng = hydro-seq.length / windowsnum
+  for i til windowsnum
+    sub-seq = hydro-seq.substring (i * leng), ((i+1)*leng)
+    sub-pnh ++= pnh-ratio sub-seq
+  return sub-pnh
 
 # function evaluate hydro-seq, label
 #   l = hydro-seq.length; type = hydro-seq.0; i = 1; count = 1; result = []

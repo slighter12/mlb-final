@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "fs": "^0.0.2",
+    "json2csv": "^3.0.2",
     "jsonfile": "^2.2.3",
     "node-getopt": "^0.2.3"
   },
